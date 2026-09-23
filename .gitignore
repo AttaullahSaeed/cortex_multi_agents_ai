@@ -1,0 +1,40 @@
+# Node Modules
+node_modules/
+**/node_modules/
+
+# Environment Variables
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Secret Keys & Credentials
+serviceAccountKey.json
+**/serviceAccountKey.json
+*.pem
+*.key
+
+# Frontend Builds (Vite / React / Next.js)
+dist/
+**/dist/
+build/
+**/build/
+.next/
+**/.next/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing & Coverage
+coverage/
+**/coverage/
+
+# OS & Editor Files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
