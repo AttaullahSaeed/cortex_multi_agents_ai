@@ -53,8 +53,10 @@ workflow.addConditionalEdges(
   },
 );
 
-// 4. Connect Worker Nodes to END
-workflow.addEdge("search", END);
+// 4. Connect Worker Nodes
+// IMPORTANT FIX: search agent search karne ke baad chat agent ko pass karega
+workflow.addEdge("search", "chat");
+
 workflow.addEdge("chat", END);
 workflow.addEdge("coding", END);
 workflow.addEdge("pdf", END);

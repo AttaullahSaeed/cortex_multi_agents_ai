@@ -46,7 +46,12 @@ const MessageList = () => {
         <div>
           {messages?.map((msg, i) => (
             <div>
-              <MessageBuble key={i} role={msg?.role} content={msg?.content} />
+              <MessageBuble
+                key={i}
+                role={msg?.role}
+                content={msg?.content}
+                images={msg?.images || []}
+              />
             </div>
           ))}
           {aiMessageLoading && <AILoader />}
