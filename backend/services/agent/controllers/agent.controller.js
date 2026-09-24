@@ -29,6 +29,7 @@ export const agent = async (req, res) => {
     });
     const resp = result.aiResponse;
     const images = result.images || [];
+    const artifacts = result.artifacts || [];
 
     // 3. Save Assistant Response with correct parameters
     await addMessage(conversationId, "assistant", resp);
@@ -38,11 +39,13 @@ export const agent = async (req, res) => {
       role: "assistant",
       content: resp,
       images,
+      artifacts,
     });
 
     return res.status(200).json({
       answer: resp,
       images: images,
+      artifacts,
     });
   } catch (error) {
     console.error("Agent Handler Error:", error);

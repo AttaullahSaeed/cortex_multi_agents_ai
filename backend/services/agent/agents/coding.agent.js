@@ -129,5 +129,6 @@ export const codingAgent = async (state) => {
     ...state,
     intent,
     aiResponse: response.content,
+    artifacts: [],
   };
 };
