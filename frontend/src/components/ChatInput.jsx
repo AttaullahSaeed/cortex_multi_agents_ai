@@ -1,58 +1,18 @@
 import { Mic, Paperclip, Send } from "lucide-react";
 import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { sendMessage } from "../feature/sendMessage";
-import { addMessage, setAiMessageLoading } from "../redux/messagesSlice";
-import { createConversation } from "../feature/createConversation";
-import {
-  addConversation,
-  setConvTitle,
-  setSelectedConversation,
-} from "../redux/conversationSlice";
-import { updateConversation } from "../feature/updateConversation";
 import { agents } from "../common";
+import { useSendMessage } from "../hooks/useSendMessage";
+
 const ChatInput = () => {
   const [value, setValue] = useState("");
-  const { selectedConversation } = useSelector((state) => state.conversation);
   const [selectedAgent, setSelectedAgent] = useState("Auto");
-  const dispatch = useDispatch();
+  const { sendUserMessage } = useSendMessage();
 
-  const handleSendMessage = async () => {
-    let conversation = selectedConversation;
-    if (!conversation) {
-      const newConversion = await createConversation();
-      dispatch(setSelectedConversation(newConversion));
-      dispatch(addConversation(newConversion));
-      conversation = newConversion;
-    }
-    dispatch(addMessage({ role: "user", content: value.trim() }));
-    dispatch(setAiMessageLoading(true));
+  const handleSendMessage = () => {
+    if (!value.trim()) return;
+    const text = value;
     setValue("");
-
-    if (conversation?.title === "New Chat") {
-      await updateConversation({
-        id: conversation?._id,
-        title: value.trim(),
-      });
-      dispatch(
-        setConvTitle({ conversationId: conversation._id, title: value.trim() }),
-      );
-    }
-
-    const payload = {
-      prompt: value.trim(),
-      conversationId: conversation?._id,
-      agent: selectedAgent.toLowerCase(),
-    };
-    const data = await sendMessage(payload);
-    dispatch(
-      addMessage({
-        role: "assistant",
-        content: data.answer,
-        images: data.images,
-      }),
-    );
-    dispatch(setAiMessageLoading(false));
+    sendUserMessage(text, selectedAgent);
   };
 
   const handleKeyDown = (e) => {
@@ -71,6 +31,7 @@ const ChatInput = () => {
             const Icon = agent.icon;
             return (
               <div
+                key={agent.label}
                 onClick={() => setSelectedAgent(agent.label)}
                 className={`cursor-pointer flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium border transition-all
   ${

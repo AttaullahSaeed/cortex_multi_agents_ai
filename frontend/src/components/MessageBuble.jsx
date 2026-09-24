@@ -20,7 +20,7 @@ const CodeBlock = ({ language, codeString }) => {
 
   return (
     <div className="relative my-4 rounded-xl overflow-hidden border border-white/10">
-      <div className="flex items-center justify-between px-4 py-1.5 bg-slate-800/80 text-[11px] text-slate-400 font-mono">
+      <div className="flex items-center justify-between px-4 py-1.5 text-[11px] text-slate-400 font-mono border-b border-white/[0.06]">
         <span>{language || "text"}</span>
         <button
           onClick={handleCopy}
@@ -44,7 +44,10 @@ const CodeBlock = ({ language, codeString }) => {
           margin: 0,
           padding: "1rem",
           fontSize: "13px",
-          background: "rgba(15, 23, 42, 0.8)",
+          background: "transparent",
+        }}
+        codeTagProps={{
+          style: { background: "transparent" },
         }}
         wrapLongLines
       >
@@ -163,11 +166,17 @@ const MessageBuble = ({ role, content, images }) => {
             hr: () => <hr className="my-6 border-white/10" />,
 
             // Code & Inline Code
-            code: ({ node, inline, className, children, ...props }) => {
+            code: ({ node, className, children, ...props }) => {
               const match = /language-(\w+)/.exec(className || "");
               const codeString = String(children).replace(/\n$/, "");
 
-              return inline ? (
+              // Block code always gets a "language-xxx" className from remark,
+              // even with no language specified after ``` fences it still
+              // wraps in <pre>. We treat "has no newline AND no className"
+              // as inline; everything else (fenced blocks) as a CodeBlock.
+              const isInline = !className && !codeString.includes("\n");
+
+              return isInline ? (
                 <code
                   className="bg-white/10 text-indigo-300 px-1.5 py-0.5 rounded text-xs font-mono"
                   {...props}
