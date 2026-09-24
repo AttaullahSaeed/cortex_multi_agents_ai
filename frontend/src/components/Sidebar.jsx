@@ -12,13 +12,12 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { getConversations } from "../feature/getConversations";
 import {
-  addConversation,
   setConversations,
   setSelectedConversation,
 } from "../redux/conversationSlice";
-import { createConversation } from "../feature/createConversation";
 import { logout } from "../feature/logout";
 import { setUserData } from "../redux/userSlice";
+import { clearMessages } from "../redux/messagesSlice";
 const Sidebar = () => {
   const [collapse, setCollapse] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -38,8 +37,8 @@ const Sidebar = () => {
   }, [userData?._id]);
 
   const handleCreateConversation = async () => {
-    const data = await createConversation();
-    dispatch(addConversation(data));
+    dispatch(setSelectedConversation(null));
+    dispatch(clearMessages());
   };
 
   if (collapse) {

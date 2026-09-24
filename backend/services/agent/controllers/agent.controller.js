@@ -4,7 +4,7 @@ import { addMessage } from "../config/memory.js";
 
 export const agent = async (req, res) => {
   try {
-    const { prompt, conversationId } = req.body;
+    const { prompt, conversationId, agent } = req.body;
 
     if (!prompt || !conversationId) {
       return res
@@ -14,7 +14,7 @@ export const agent = async (req, res) => {
 
     await addMessage(conversationId, "user", prompt);
 
-    // Save to Database Service asynchronously (or await if strict persistence required)
+    // Save to Database Service asynchronously
     await axios.post(`${process.env.CHAT_SERVICE}/save-message`, {
       conversationId,
       role: "user",
@@ -25,9 +25,10 @@ export const agent = async (req, res) => {
     const result = await graph.invoke({
       prompt,
       conversationId,
+      agent,
     });
-
     const resp = result.aiResponse;
+    const images = result.images || [];
 
     // 3. Save Assistant Response with correct parameters
     await addMessage(conversationId, "assistant", resp);
@@ -36,9 +37,13 @@ export const agent = async (req, res) => {
       conversationId,
       role: "assistant",
       content: resp,
+      images,
     });
 
-    return res.status(200).json(resp);
+    return res.status(200).json({
+      answer: resp,
+      images: images,
+    });
   } catch (error) {
     console.error("Agent Handler Error:", error);
     return res
