@@ -7,7 +7,11 @@ import {
   setConvTitle,
   setSelectedConversation,
 } from "../redux/conversationSlice";
-import { addMessage, setAiMessageLoading } from "../redux/messagesSlice";
+import {
+  addMessage,
+  setAiMessageLoading,
+  setArtifacts,
+} from "../redux/messagesSlice";
 
 /**
  * Central place for the "send a message" flow.
@@ -49,6 +53,11 @@ export const useSendMessage = () => {
 
     const data = await sendMessage(payload);
 
+    if (data?.artifacts) {
+      dispatch(setArtifacts(data?.artifacts || []));
+    } else {
+      dispatch(setArtifacts([]));
+    }
     dispatch(
       addMessage({
         role: "assistant",

@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import Nav from "./Nav";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
-import { setMessages } from "../redux/messagesSlice";
+import { setArtifacts, setMessages } from "../redux/messagesSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { getMessages } from "../feature/getMessages";
 
@@ -16,6 +16,7 @@ const ChatArea = () => {
         if (selectedConversation?.title === "New Chat") return;
         const data = await getMessages(selectedConversation?._id);
         dispatch(setMessages(data));
+        dispatch(setArtifacts(data?.artifacts || []));
       }
     };
 
