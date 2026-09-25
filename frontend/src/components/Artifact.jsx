@@ -1,4 +1,11 @@
-import { Code2, Eye, PanelRightClose, PanelRightOpen } from "lucide-react";
+import {
+  Code2,
+  Eye,
+  PanelRightClose,
+  PanelRightOpen,
+  Copy,
+  Check,
+} from "lucide-react";
 import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { easeInOut, motion } from "motion/react";
@@ -10,6 +17,7 @@ function Artifact() {
   const [collapsed, setCollapsed] = useState(false);
   const [tab, setTab] = useState("code");
   const [activeFile, setActiveFile] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   const artifact = artifacts?.[0];
   const files = artifact?.files || [];
@@ -28,7 +36,6 @@ function Artifact() {
 
     let html = htmlFile.content;
 
-    // Inject CSS
     if (cssFile) {
       html = html.replace(
         /<link[^>]*href=["']style\.css["'][^>]*>/i,
@@ -36,7 +43,6 @@ function Artifact() {
       );
     }
 
-    // Inject JS
     if (jsFile) {
       html = html.replace(
         /<script[^>]*src=["']script\.js["'][^>]*><\/script>/i,
@@ -47,7 +53,6 @@ function Artifact() {
     return html;
   }, [files]);
 
-  // Detect language for syntax highlighter
   const getLanguage = (filename = "") => {
     if (filename.endsWith(".html")) return "html";
     if (filename.endsWith(".css")) return "css";
@@ -57,6 +62,18 @@ function Artifact() {
     if (filename.endsWith(".tsx")) return "tsx";
     if (filename.endsWith(".json")) return "json";
     return "text";
+  };
+
+  const handleCopy = async () => {
+    if (!currentFile?.content) return;
+
+    try {
+      await navigator.clipboard.writeText(currentFile.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
   };
 
   if (!artifacts || artifacts.length === 0) return null;
@@ -88,28 +105,45 @@ function Artifact() {
               </div>
             </div>
 
-            {/* Tabs */}
-            <div className="flex items-center gap-1 bg-white/[0.04] border border-white/[0.06] p-1 rounded-lg">
-              <button
-                onClick={() => setTab("code")}
-                className={`flex items-center cursor-pointer gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
-                  tab === "code"
-                    ? "bg-indigo-500 text-white"
-                    : "text-slate-500 hover:text-slate-200"
-                }`}
-              >
-                <Code2 size={11} /> Code
-              </button>
-              <button
-                onClick={() => setTab("preview")}
-                className={`flex items-center cursor-pointer gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
-                  tab === "preview"
-                    ? "bg-indigo-500 text-white"
-                    : "text-slate-500 hover:text-slate-200"
-                }`}
-              >
-                <Eye size={11} /> Preview
-              </button>
+            {/* Tabs + Copy */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 bg-white/[0.04] border border-white/[0.06] p-1 rounded-lg">
+                <button
+                  onClick={() => setTab("code")}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
+                    tab === "code"
+                      ? "bg-indigo-500 text-white"
+                      : "text-slate-500 hover:text-slate-200"
+                  }`}
+                >
+                  <Code2 size={11} /> Code
+                </button>
+                <button
+                  onClick={() => setTab("preview")}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
+                    tab === "preview"
+                      ? "bg-indigo-500 text-white"
+                      : "text-slate-500 hover:text-slate-200"
+                  }`}
+                >
+                  <Eye size={11} /> Preview
+                </button>
+              </div>
+
+              {/* Copy Button - Top */}
+              {tab === "code" && (
+                <button
+                  onClick={handleCopy}
+                  title="Copy code"
+                  className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.08] transition-colors bg-transparent border-none cursor-pointer"
+                >
+                  {copied ? (
+                    <Check size={15} className="text-emerald-400" />
+                  ) : (
+                    <Copy size={15} />
+                  )}
+                </button>
+              )}
             </div>
           </div>
 
@@ -120,7 +154,7 @@ function Artifact() {
                 <button
                   key={index}
                   onClick={() => setActiveFile(index)}
-                  className={`px-4 py-2.5 cursor-pointer text-[11px] font-medium whitespace-nowrap transition-colors border-r border-white/[0.05] relative ${
+                  className={`px-4 py-2.5 text-[11px] font-medium whitespace-nowrap transition-colors border-r border-white/[0.05] relative ${
                     activeFile === index
                       ? "text-indigo-400"
                       : "text-slate-500 hover:text-slate-300"
@@ -159,7 +193,6 @@ function Artifact() {
                 title="preview"
                 srcDoc={previewHtml}
                 className="w-full h-full border-0 bg-white"
-                // allow-forms is required for form submission
                 sandbox="allow-scripts allow-forms"
               />
             )}
