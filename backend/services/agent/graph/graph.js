@@ -5,7 +5,6 @@ import { chatAgent } from "../agents/chat.agent.js";
 import { searchAgent } from "../agents/search.agent.js";
 import { codingAgent } from "../agents/coding.agent.js";
 import { pdfAgent } from "../agents/pdf.agent.js";
-import { pptAgent } from "../agents/ppt.agent.js";
 import { visionAgent } from "../agents/vision.agent.js";
 
 const workflow = new StateGraph(agentState);
@@ -16,7 +15,6 @@ workflow.addNode("chat", chatAgent);
 workflow.addNode("search", searchAgent);
 workflow.addNode("coding", codingAgent);
 workflow.addNode("pdf", pdfAgent);
-workflow.addNode("ppt", pptAgent);
 workflow.addNode("vision", visionAgent);
 
 // 2. Set Entry Edge
@@ -35,8 +33,7 @@ workflow.addConditionalEdges(
         return "coding";
       case "pdf":
         return "pdf";
-      case "ppt":
-        return "ppt";
+
       case "vision":
         return "vision";
       default:
@@ -48,7 +45,6 @@ workflow.addConditionalEdges(
     search: "search",
     coding: "coding",
     pdf: "pdf",
-    ppt: "ppt",
     vision: "vision",
   },
 );
@@ -60,7 +56,6 @@ workflow.addEdge("search", "chat");
 workflow.addEdge("chat", END);
 workflow.addEdge("coding", END);
 workflow.addEdge("pdf", END);
-workflow.addEdge("ppt", END);
 workflow.addEdge("vision", END);
 
 // 5. Compile and Export the Graph

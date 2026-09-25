@@ -29,6 +29,8 @@ export const getModel = async (agent) => {
       return grok;
     case "coding":
       return openRouter;
+    case "pdf":
+      return gemini;
     default:
       return grok;
   }
