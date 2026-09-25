@@ -5,14 +5,15 @@ import {
   PanelRightOpen,
   Copy,
   Check,
+  X,
 } from "lucide-react";
 import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
-import { easeInOut, motion } from "motion/react";
+import { easeInOut, motion, AnimatePresence } from "motion/react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
-function Artifact() {
+function Artifact({ artifactOpen, setArtifactOpen }) {
   const { artifacts } = useSelector((state) => state.message);
   const [collapsed, setCollapsed] = useState(false);
   const [tab, setTab] = useState("code");
@@ -66,7 +67,6 @@ function Artifact() {
 
   const handleCopy = async () => {
     if (!currentFile?.content) return;
-
     try {
       await navigator.clipboard.writeText(currentFile.content);
       setCopied(true);
@@ -78,144 +78,175 @@ function Artifact() {
 
   if (!artifacts || artifacts.length === 0) return null;
 
-  return (
-    <motion.div
-      initial={{ width: 350 }}
-      animate={{ width: collapsed ? 48 : 480 }}
-      transition={{ duration: 0.25, ease: easeInOut }}
-      className="hidden lg:flex h-full border-l border-white/[0.06] flex-col overflow-hidden shrink-0"
-    >
-      {!collapsed ? (
-        <div className="flex flex-col h-full bg-[#0d0f14]">
-          {/* Header */}
-          <div className="h-14 px-4 border-b border-white/[0.06] flex items-center gap-3 shrink-0">
-            <button
-              onClick={() => setCollapsed(true)}
-              className="flex items-center justify-center w-7 h-7 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/[0.05] transition-colors duration-150 bg-transparent border-none cursor-pointer"
-            >
-              <PanelRightClose size={16} />
-            </button>
+  const content = (
+    <div className="flex flex-col h-full bg-[#0d0f14]">
+      {/* Header */}
+      <div className="h-14 px-4 border-b border-white/[0.06] flex items-center gap-3 shrink-0">
+        {/* Desktop collapse */}
+        <button
+          onClick={() => setCollapsed(true)}
+          className="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/[0.05] transition-colors bg-transparent border-none cursor-pointer"
+        >
+          <PanelRightClose size={16} />
+        </button>
 
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <div className="flex items-center justify-center w-6 h-6 rounded-md bg-indigo-500/10 border border-indigo-500/20">
-                <Code2 className="text-indigo-400" size={12} />
-              </div>
-              <div className="text-[13px] font-medium text-slate-200 truncate">
-                {artifact?.title}
-              </div>
-            </div>
+        {/* Mobile close */}
+        <button
+          onClick={() => setArtifactOpen?.(false)}
+          className="flex lg:hidden items-center justify-center w-7 h-7 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/[0.05] transition-colors bg-transparent border-none cursor-pointer"
+        >
+          <X size={16} />
+        </button>
 
-            {/* Tabs + Copy */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 bg-white/[0.04] border border-white/[0.06] p-1 rounded-lg">
-                <button
-                  onClick={() => setTab("code")}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
-                    tab === "code"
-                      ? "bg-indigo-500 text-white"
-                      : "text-slate-500 hover:text-slate-200"
-                  }`}
-                >
-                  <Code2 size={11} /> Code
-                </button>
-                <button
-                  onClick={() => setTab("preview")}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
-                    tab === "preview"
-                      ? "bg-indigo-500 text-white"
-                      : "text-slate-500 hover:text-slate-200"
-                  }`}
-                >
-                  <Eye size={11} /> Preview
-                </button>
-              </div>
-
-              {/* Copy Button - Top */}
-              {tab === "code" && (
-                <button
-                  onClick={handleCopy}
-                  title="Copy code"
-                  className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.08] transition-colors bg-transparent border-none cursor-pointer"
-                >
-                  {copied ? (
-                    <Check size={15} className="text-emerald-400" />
-                  ) : (
-                    <Copy size={15} />
-                  )}
-                </button>
-              )}
-            </div>
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="flex items-center justify-center w-6 h-6 rounded-md bg-indigo-500/10 border border-indigo-500/20">
+            <Code2 className="text-indigo-400" size={12} />
           </div>
-
-          {/* File Tabs */}
-          {tab === "code" && (
-            <div className="flex border-b border-white/[0.06] overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden shrink-0">
-              {files.map((f, index) => (
-                <button
-                  key={index}
-                  onClick={() => setActiveFile(index)}
-                  className={`px-4 py-2.5 text-[11px] font-medium whitespace-nowrap transition-colors border-r border-white/[0.05] relative ${
-                    activeFile === index
-                      ? "text-indigo-400"
-                      : "text-slate-500 hover:text-slate-300"
-                  }`}
-                >
-                  {f.name}
-                  {activeFile === index && (
-                    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-indigo-500 rounded-t-full" />
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Content Area */}
-          <div className="flex-1 overflow-auto">
-            {tab === "code" ? (
-              <SyntaxHighlighter
-                language={getLanguage(currentFile?.name)}
-                style={oneDark}
-                customStyle={{
-                  margin: 0,
-                  padding: "16px",
-                  background: "transparent",
-                  fontSize: "13px",
-                  lineHeight: "1.6",
-                  height: "100%",
-                }}
-                showLineNumbers
-                wrapLongLines
-              >
-                {currentFile?.content || "No content"}
-              </SyntaxHighlighter>
-            ) : (
-              <iframe
-                title="preview"
-                srcDoc={previewHtml}
-                className="w-full h-full border-0 bg-white"
-                sandbox="allow-scripts allow-forms"
-              />
-            )}
-          </div>
-        </div>
-      ) : (
-        /* Collapsed state */
-        <div className="flex h-full flex-col items-center py-4 gap-3 bg-[#0d0f14]">
-          <button
-            onClick={() => setCollapsed(false)}
-            className="flex items-center justify-center w-7 h-7 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/[0.05] transition-colors bg-transparent border-none cursor-pointer"
-          >
-            <PanelRightOpen size={16} />
-          </button>
-          <div
-            className="text-[10px] font-medium text-slate-600 tracking-widest uppercase"
-            style={{ writingMode: "vertical-lr", transform: "rotate(180deg)" }}
-          >
+          <div className="text-[13px] font-medium text-slate-200 truncate">
             {artifact?.title}
           </div>
         </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 bg-white/[0.04] border border-white/[0.06] p-1 rounded-lg">
+            <button
+              onClick={() => setTab("code")}
+              className={`flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
+                tab === "code"
+                  ? "bg-indigo-500 text-white"
+                  : "text-slate-500 hover:text-slate-200"
+              }`}
+            >
+              <Code2 size={11} /> Code
+            </button>
+            <button
+              onClick={() => setTab("preview")}
+              className={`flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
+                tab === "preview"
+                  ? "bg-indigo-500 text-white"
+                  : "text-slate-500 hover:text-slate-200"
+              }`}
+            >
+              <Eye size={11} /> Preview
+            </button>
+          </div>
+
+          {tab === "code" && (
+            <button
+              onClick={handleCopy}
+              title="Copy code"
+              className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.08] transition-colors bg-transparent border-none cursor-pointer"
+            >
+              {copied ? (
+                <Check size={15} className="text-emerald-400" />
+              ) : (
+                <Copy size={15} />
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* File tabs */}
+      {tab === "code" && (
+        <div className="flex border-b border-white/[0.06] overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden shrink-0">
+          {files.map((f, index) => (
+            <button
+              key={index}
+              onClick={() => setActiveFile(index)}
+              className={`px-4 py-2.5 text-[11px] font-medium whitespace-nowrap transition-colors border-r border-white/[0.05] relative ${
+                activeFile === index
+                  ? "text-indigo-400"
+                  : "text-slate-500 hover:text-slate-300"
+              }`}
+            >
+              {f.name}
+              {activeFile === index && (
+                <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-indigo-500 rounded-t-full" />
+              )}
+            </button>
+          ))}
+        </div>
       )}
-    </motion.div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-auto">
+        {tab === "code" ? (
+          <SyntaxHighlighter
+            language={getLanguage(currentFile?.name)}
+            style={oneDark}
+            customStyle={{
+              margin: 0,
+              padding: "16px",
+              background: "transparent",
+              fontSize: "13px",
+              lineHeight: "1.6",
+              height: "100%",
+            }}
+            showLineNumbers
+            wrapLongLines
+          >
+            {currentFile?.content || "No content"}
+          </SyntaxHighlighter>
+        ) : (
+          <iframe
+            title="preview"
+            srcDoc={previewHtml}
+            className="w-full h-full border-0 bg-white"
+            sandbox="allow-scripts allow-forms"
+          />
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {/* ── Desktop side panel ── */}
+      <motion.div
+        initial={{ width: 350 }}
+        animate={{ width: collapsed ? 48 : 480 }}
+        transition={{ duration: 0.25, ease: easeInOut }}
+        className="hidden lg:flex h-full border-l border-white/[0.06] flex-col overflow-hidden shrink-0"
+      >
+        {!collapsed ? (
+          content
+        ) : (
+          <div className="flex h-full flex-col items-center py-4 gap-3 bg-[#0d0f14]">
+            <button
+              onClick={() => setCollapsed(false)}
+              className="flex items-center justify-center w-7 h-7 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/[0.05] transition-colors bg-transparent border-none cursor-pointer"
+            >
+              <PanelRightOpen size={16} />
+            </button>
+            <div
+              className="text-[10px] font-medium text-slate-600 tracking-widest uppercase"
+              style={{
+                writingMode: "vertical-lr",
+                transform: "rotate(180deg)",
+              }}
+            >
+              {artifact?.title}
+            </div>
+          </div>
+        )}
+      </motion.div>
+
+      {/* ── Mobile full-screen sheet ── */}
+      <AnimatePresence>
+        {artifactOpen && (
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ duration: 0.3, ease: easeInOut }}
+            className="fixed inset-0 z-50 lg:hidden bg-[#0d0f14]"
+          >
+            {content}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
